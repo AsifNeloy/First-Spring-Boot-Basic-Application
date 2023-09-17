@@ -7,19 +7,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Optional;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "human")
+@Table(name = "human") //table name in the database
 public class Human {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Id //primary key indicator
+    @GeneratedValue(strategy = GenerationType.IDENTITY) //for auto increment
+    @Column(name = "id") //name of the column in db
+
     public Integer id;
 
-    @Column(name = "name", columnDefinition = "VARCHAR(50)")
+    @Column(name = "name", columnDefinition = "VARCHAR(50)") //name and type of the column in db
     @JsonProperty("name")
     public String name;
 
