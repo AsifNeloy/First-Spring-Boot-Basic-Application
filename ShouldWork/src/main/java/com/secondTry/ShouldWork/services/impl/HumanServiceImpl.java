@@ -10,9 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class HumanServiceImpl implements HumanService {
@@ -23,9 +22,9 @@ public class HumanServiceImpl implements HumanService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public HumanServiceImpl() {
-        this.humanRepo = humanRepo;
-    }
+//    public HumanServiceImpl() {
+//        this.humanRepo = humanRepo;
+//    }
 
     @Override
     public List<HumanDTO> findAll() {
@@ -42,6 +41,7 @@ public class HumanServiceImpl implements HumanService {
 
         //strategy 3: works
         List<HumanDTO> humanDTOS = new ArrayList<HumanDTO>();
+
         for(Human human1: human){
             ModelMapper mapper = new ModelMapper();
             mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
@@ -52,23 +52,62 @@ public class HumanServiceImpl implements HumanService {
     }
 
     @Override
-    public HumanDTO findById(Integer integer) {
+    public HumanDTO findById(Integer id) {
 
-        Human human = this.humanRepo.findById(integer).get();
-        HumanDTO humanDTO = this.modelMapper.map(human, HumanDTO.class);
-        return humanDTO;
+
+        Optional<Human> optionalHuman = Optional.ofNullable(this.humanRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("No user found with id = " + id)));
+        //runtimeException is the last most exception. other exceptions must be before runtime.
+        //implement try catch here
+
+//isEmpty or isPresent should be in the service to use optional
+//        if (optionalHuman.isEmpty()) {
+//            return new HumanDTO();
+//        }
+
+        return this.modelMapper.map(optionalHuman.get(), HumanDTO.class);
     }
 
     @Override
-    public Human save(Human h){
-        return humanRepo.save(h);
+    public Human save(Human human){
+
+
+
+        return humanRepo.save(human);
     }
 
 
+    @Override
+    public Human update(Integer id, Human h) {
+
+        Human human = humanRepo.findById(id).get();
+        human.name= h.name;
+        human.company = h.company;
+        human.password = h.password;
+
+
+        return humanRepo.save(human);
+
+    }
 
     @Override
     public void deleteById(Integer id){
-        Human h = humanRepo.findById(id).get();
-        humanRepo.delete(h);
+        Human human = humanRepo.findById(id).get();
+
+
+        humanRepo.delete(human);
+    }
+
+    //finding by name method gets confused when there are more than one with same name
+    @Override
+    public HumanDTO findByName(String name){
+        Optional<Human> optionalHuman;
+        optionalHuman = Optional.ofNullable(this.humanRepo.findByName(name)
+                .orElseThrow(() -> new RuntimeException("No user found with name = " + name)));
+        if (optionalHuman.isEmpty()) {
+            return new HumanDTO();
+        }
+        return this.modelMapper.map(optionalHuman.get(), HumanDTO.class);
+
     }
 }

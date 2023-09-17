@@ -14,4 +14,8 @@ public interface HumanService {
     public Human save(Human h);
 
     public void deleteById(Integer id);
+
+    public Human update(Integer id, Human human);
+
+    public HumanDTO findByName(String name);
 }
