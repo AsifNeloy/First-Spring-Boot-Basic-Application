@@ -2,6 +2,8 @@ package com.secondTry.ShouldWork.services.impl;
 
 import com.secondTry.ShouldWork.dtos.HumanDTO;
 import com.secondTry.ShouldWork.entity.Human;
+import com.secondTry.ShouldWork.exceptions.HumanAlreadyExistsException;
+import com.secondTry.ShouldWork.exceptions.NoSuchHumanexistsException;
 import com.secondTry.ShouldWork.repos.HumanRepo;
 import com.secondTry.ShouldWork.services.HumanService;
 import org.modelmapper.ModelMapper;
@@ -56,37 +58,50 @@ public class HumanServiceImpl implements HumanService {
 
 
         Optional<Human> optionalHuman = Optional.ofNullable(this.humanRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("No user found with id = " + id)));
+                .orElseThrow(() -> new NoSuchHumanexistsException("No user found with id = " + id)));
         //runtimeException is the last most exception. other exceptions must be before runtime.
         //implement try catch here
 
 //isEmpty or isPresent should be in the service to use optional
-//        if (optionalHuman.isEmpty()) {
-//            return new HumanDTO();
-//        }
+        if (optionalHuman.isEmpty()) {
+            return new HumanDTO();
+        }
 
         return this.modelMapper.map(optionalHuman.get(), HumanDTO.class);
     }
 
+    //save method is implemented in a way that similar names are not accepted
     @Override
     public Human save(Human human){
 
+        Human newhuman = humanRepo.findByName(human.getName())
+                .orElse(null);
+        if(newhuman == null){
+            return humanRepo.save(human);
+        }
+        else
+            throw new HumanAlreadyExistsException("Human already exists with this name");
 
 
-        return humanRepo.save(human);
     }
 
 
     @Override
     public Human update(Integer id, Human h) {
 
-        Human human = humanRepo.findById(id).get();
-        human.name= h.name;
-        human.company = h.company;
-        human.password = h.password;
 
 
-        return humanRepo.save(human);
+        Human human = humanRepo.findById(h.getId()).orElse(null);
+        if(human == null){
+            throw new NoSuchHumanexistsException("No human found with this id");
+        }
+        else{
+            human.name= h.name;
+            human.company = h.company;
+            human.password = h.password;
+            return humanRepo.save(human);
+        }
+
 
     }
 
